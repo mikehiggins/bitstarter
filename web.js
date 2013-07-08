@@ -6,10 +6,10 @@ var inputfile = "index.html";
 var app = express.createServer(express.logger());
 
 app.get('/', function(request, response) {
-// var filecontents = fs.readFileSync(inputfile);
-// response.write(filecontents);
+   var filecontents = fs.readFileSync(inputfile, 'utf8');
+   response.send(filecontents.toString());
 
-  response.send('Hello World 2!');
+//  response.send('Hello World 2!');
 });
 
 var port = process.env.PORT || 5000;

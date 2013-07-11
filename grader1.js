@@ -8,7 +8,7 @@ var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
 
 var assertFileExists = function(infile) {
-    var instr = infile.toString();
+   var instr = infile.toString();
     if (!fs.existsSync(instr)) {
         console.log("%s does not exist. Exiting.", instr);
         process.exit(1);
@@ -24,6 +24,18 @@ var cheerioHtmlFile = function(htmlfile) {
 var cheerioHtmlUrl = function(url) {
     return cheerio.load(url);
 };
+
+// accepts a url and returns the html string
+var restlerHtmlUrl = function(htmlurl) {
+    rest.get(htmlurl).on('complete', function(result) {
+        if (result instanceof Error) {
+            console.log('Error: ' + result.message);
+            process.exit(1); 
+        } else {
+            return result;
+        }
+    });
+}
 
 var loadChecks = function(checksfile) {
     return JSON.parse(fs.readFileSync(checksfile));
@@ -59,21 +71,32 @@ if(require.main == module) {
         .parse(process.argv);
 
     if (program.file) {
+        console.log('-u: ' + program.url);
+        console.log('-f: ' + program.file);
         var htmlstring = cheerioHtmlFile(program.file);
+        console.log('htmlstring: ' + htmlstring);
         var checkJson = checkHtmlString(htmlstring, program.checks);
         finishup(checkJson);
+
     } else if (program.url) {
+        console.log('-u: ' + program.url);
+
         var getHtml = function(response, status) {
             if (response instanceof Error) {
                 console.log('Error: ' + response.message);
                 process.exit(1);
             } else {
+                //console.log('Response: ' + response);
                 var htmlstring = cheerioHtmlUrl(response);
                 var checkJson = checkHtmlString(htmlstring, program.checks);
                 finishup(checkJson);
             }
         };
         rest.get(program.url).on('complete', getHtml);
+
+        //var htmlString = rest.get(program.url).on('complete', getHtml);
+        //var checkJson = checkHtmlString(htmlstring, program.checks);
+        //finishup(checkJson);
     } else {
         process.exit(1);
     }
@@ -81,3 +104,4 @@ if(require.main == module) {
     exports.checkHtmlFile = checkHtmlFile;
     exports.checkUrl = checkUrl;
 }
+
